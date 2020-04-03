@@ -106,7 +106,7 @@ def GetUserInfo(username):
     if find == False:
         return Exception("User not find")
     bf4 = f"https://battlelog.battlefield.com/bf4/warsawoverviewpopulate/{personaId}/1/"
-    bf3 = f"https://battlelog.battlefield.com/bf3/overviewPopulateStats/{personaId}/None/1/"
+    bf3 = f"https://battlelog.battlefield.com/bf3/user/overviewBoxStats/{personaId}"
     if bf.lower() == "bf4":
         url = bf4
     elif bf.lower() == "bf3" :
@@ -114,15 +114,26 @@ def GetUserInfo(username):
     res = requests.get(url, headers=headers)
     if not res.status_code == 200:
         raise Exception()
-    if '"overviewStats":null,' in res.text:
-        return (personaId, 0, 0, username)
-    score = re.findall(r'''\"scorePerMinute\":(.*?),''', res.text)[0]
-    time = re.findall(r'''\"timePlayed\":(.*?),''', res.text)[0]
-    return (personaId, score, time, username)
+    data = json.loads(res.text)
+    
+    for soldier in data['data']['soldiersBox']:
+      for val in soldier:
+        if type(soldier[val]) is type(1):
+          if soldier[val] > max_stat:
+            print(val)
+            return (personaId, soldier[val], val, username)
+
+    return (personaId, '', 0, username)
+    #######################################          
+    #if '"overviewStats":null,' in res.text:
+    #    return (personaId, 0, 0, username)
+    #score = re.findall(r'''\"scorePerMinute\":(.*?),''', res.text)[0]
+    #time = re.findall(r'''\"timePlayed\":(.*?),''', res.text)[0]
+    #return (personaId, score, time, username)
         
 def CheckParams(player, guid):
-    if (int(player[1]) > score_per_minute or int(player[2]) > played_time):
-        print(f"{player[3]} banned " + str(rcon.Command(f"banList.add guid {guid} perm Crasher({player[3]})")))
+    if (int(player[2]) > max_stat):
+        print(f"{player[3]} banned " + str(rcon.Command(f"banList.add guid {guid} perm Crasher({player[3]} {player[1]})")))
     else:
         print(f"{player[3]} joined")
 
