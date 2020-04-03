@@ -4,3 +4,4 @@ port = 47200
 password = "password"
 score_per_minute = 100000
 played_time = 60000000    #minutes
+max_stat = 2147483647
